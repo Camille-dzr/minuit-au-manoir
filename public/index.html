@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minuit au Manoir</title>
+  <meta name="description" content="Jeu coopératif à deux : deux chasseuses de fantômes ont cinq minutes pour retrouver trois objets maudits et s’échapper d’un manoir hanté avant minuit.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <main>
+    <!-- ACCUEIL -->
+    <section id="screen-home" class="screen active">
+      <div class="title-block">
+        <p class="kicker">Une aventure hantée pour deux</p>
+        <h1>Minuit <span>au</span> Manoir</h1>
+        <p class="tagline">Deux chasseuses de fantômes, un salon maudit, trois reliques… et cinq minutes avant les douze coups de minuit.</p>
+      </div>
+      <div class="card home-actions">
+        <button id="btn-create" class="btn primary">Créer une partie</button>
+        <div class="sep"><span>ou</span></div>
+        <form id="join-form" class="join-row" autocomplete="off">
+          <input id="join-code" maxlength="4" placeholder="CODE" aria-label="Code du salon (4 lettres)">
+          <button class="btn" type="submit">Rejoindre une partie</button>
+        </form>
+        <p id="home-error" class="error" role="alert"></p>
+      </div>
+      <ol class="how">
+        <li><strong>Crée ta chasseuse</strong> : prénom, coiffure, tenue et accessoire magique.</li>
+        <li><strong>Partage le code</strong> du salon à ta pote : chacune joue sur son navigateur.</li>
+        <li><strong>Parlez-vous !</strong> Chacune voit des indices que l’autre ne voit pas.</li>
+      </ol>
+    </section>
+
+    <!-- PERSONNALISATION -->
+    <section id="screen-custom" class="screen">
+      <h2 class="screen-title">Ta chasseuse de fantômes</h2>
+      <div class="custom-grid">
+        <div class="card preview-card">
+          <canvas id="preview" width="320" height="400" aria-label="Aperçu de ta chasseuse"></canvas>
+          <div class="turn">
+            <button id="turn-left" class="btn small round" type="button" aria-label="Tourner vers la gauche">◀</button>
+            <span id="preview-name">Chasseuse</span>
+            <button id="turn-right" class="btn small round" type="button" aria-label="Tourner vers la droite">▶</button>
+          </div>
+        </div>
+        <div class="card options">
+          <label class="field">
+            <span>Prénom</span>
+            <input id="name" maxlength="16" placeholder="Ton prénom de chasseuse" autocomplete="off">
+          </label>
+          <div class="opt-group" data-key="skin"><h3>Teint</h3><div class="opts swatches"></div></div>
+          <div class="opt-group" data-key="hair"><h3>Coiffure</h3><div class="opts"></div></div>
+          <div class="opt-group" data-key="outfit"><h3>Tenue</h3><div class="opts"></div></div>
+          <div class="opt-group" data-key="accessory"><h3>Accessoire magique</h3><div class="opts"></div></div>
+          <p id="custom-error" class="error" role="alert"></p>
+          <div class="custom-actions">
+            <button id="btn-custom-back" class="btn ghost" type="button">Retour</button>
+            <button id="btn-custom-ok" class="btn primary" type="button">Créer le salon</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SALON D'ATTENTE -->
+    <section id="screen-lobby" class="screen">
+      <h2 class="screen-title">Le vestibule</h2>
+      <div class="card code-box">
+        <p>Code du salon</p>
+        <div id="lobby-code" class="code">----</div>
+        <button id="btn-copy" class="btn small" type="button">Copier le lien d’invitation</button>
+        <p id="copy-msg" class="hint"></p>
+      </div>
+      <div class="lobby-players">
+        <div class="card pcard" data-slot="0"></div>
+        <div class="card pcard" data-slot="1"></div>
+      </div>
+      <p id="lobby-status" class="lobby-status"></p>
+      <div class="lobby-actions">
+        <button id="btn-edit" class="btn ghost" type="button">Modifier ma chasseuse</button>
+        <button id="btn-ready" class="btn primary" type="button">Je suis prête !</button>
+      </div>
+      <p class="hint">Se déplacer : flèches ou ZQSD · Interagir : E ou Espace · Fermer : Échap</p>
+    </section>
+
+    <!-- JEU -->
+    <section id="screen-game" class="screen">
+      <div id="game-wrap">
+        <canvas id="game" width="960" height="640"></canvas>
+        <div id="hud">
+          <div class="hud-spacer"></div>
+          <div id="timer" class="hud-box timer"><span id="timer-value">5:00</span><small>avant minuit</small></div>
+          <div class="hud-right">
+            <div id="inventory" class="hud-box inventory"></div>
+            <button id="btn-sound" class="btn small round" type="button" aria-label="Couper le son">🔊</button>
+          </div>
+        </div>
+        <div id="toasts" aria-live="polite"></div>
+        <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+          <div class="modal-card">
+            <button class="modal-close" type="button" aria-label="Fermer">×</button>
+            <div class="modal-body"></div>
+          </div>
+        </div>
+        <div id="end" class="end hidden">
+          <div class="end-card">
+            <h2 id="end-title"></h2>
+            <canvas id="end-canvas" width="360" height="190"></canvas>
+            <p id="end-text"></p>
+            <p id="end-solution" class="hint"></p>
+            <div class="end-actions">
+              <button id="btn-end-edit" class="btn ghost" type="button">Changer de tenue</button>
+              <button id="btn-replay" class="btn primary" type="button">Rejouer ensemble</button>
+            </div>
+            <p id="end-status" class="hint"></p>
+          </div>
+        </div>
+      </div>
+      <div class="under-game">
+        <div class="card side">
+          <div id="objectives"></div>
+          <div id="roles" class="roles"></div>
+        </div>
+        <div id="chat" class="card chat">
+          <div id="chat-log" aria-live="polite"></div>
+          <form id="chat-form" autocomplete="off">
+            <input id="chat-input" maxlength="160" placeholder="Écris à ta partenaire… (Entrée)">
+            <button class="btn small" type="submit">Envoyer</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="shared.js"></script>
+  <script src="character.js"></script>
+  <script src="room.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
